@@ -84,4 +84,48 @@ public class PruebaService {
     }
     
 
+    // Método que recibe la lista de puntuaciones y devuelve la suma total
+    public static double calcularNota(List<Integer> puntuaciones) {
+        double notaFinal = 0.0;
+
+        // Mapeo de la puntuación según la respuesta seleccionada (0-4)
+        for (int puntuacion : puntuaciones) {
+            switch (puntuacion) {
+                case 0:
+                    notaFinal += 0.0;
+                    break;
+                case 1:
+                    notaFinal += 0.25;
+                    break;
+                case 2:
+                    notaFinal += 0.50;
+                    break;
+                case 3:
+                    notaFinal += 0.75;
+                    break;
+                case 4:
+                    notaFinal += 1.0;
+                    break;
+                default:
+                    System.out.println("Valor de puntuación no válido: " + puntuacion);
+            }
+        }
+
+        return notaFinal;
+    }
+    
+    // Método que recibe la lista de puntuaciones y devuelve la suma total
+    public static double evaluador(List<Integer> puntuaciones) {
+        return puntuaciones.stream()
+                           .mapToDouble(p -> switch (p) {
+                               case 0 -> 0.0;
+                               case 1 -> 0.25;
+                               case 2 -> 0.50;
+                               case 3 -> 0.75;
+                               case 4 -> 1.0;
+                               default -> throw new IllegalArgumentException("Valor de puntuación no válido: " + p);
+                           })
+                           .sum();
+    }
+
 }

@@ -1,5 +1,9 @@
 package com.example.andaluciaskills.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +48,11 @@ public class AuthController {
     @Autowired
     private EspecialidadService especialidadService;
 
+    @Operation(summary = "Iniciar sesión del usuario")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Autenticación exitosa"),
+        @ApiResponse(responseCode = "401", description = "Credenciales inválidas")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
@@ -58,7 +67,7 @@ public class AuthController {
             Usuario usuario = customUsuarioDetailsService.findByUsername(userDetails.getUsername());
 
             // Obtener la especialidad del usuario
-            Especialidad especialidad = usuario.getEspecialidad(); // Obtén la especialidad del usuario
+            Especialidad especialidad = usuario.getEspecialidad();
             String especialidadNombre = especialidad != null ? especialidad.getNombre() : "No asignada";
 
             // Generar el token JWT utilizando el servicio
@@ -66,11 +75,11 @@ public class AuthController {
 
             // Crear un LoginResponseDTO con el role, username, token y especialidad
             LoginResponseDTO responseDTO = new LoginResponseDTO(
-                    userDetails.getAuthorities().toString(), // Puedes ajustar el role según tu lógica
+                    userDetails.getAuthorities().toString(),
                     userDetails.getUsername(),
                     token,
                     especialidadNombre,
-                    usuario.getIdUser()); // Añadimos la especialidad
+                    usuario.getIdUser());
 
             // Devolver la respuesta con el DTO
             return ResponseEntity.ok(responseDTO);
@@ -81,7 +90,11 @@ public class AuthController {
         }
     }
 
-    // Endpoint de registro
+    @Operation(summary = "Registrar un nuevo usuario")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Usuario registrado correctamente"),
+        @ApiResponse(responseCode = "400", description = "El usuario ya existe")
+    })
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UsuarioDTO usuarioDTO) {
 

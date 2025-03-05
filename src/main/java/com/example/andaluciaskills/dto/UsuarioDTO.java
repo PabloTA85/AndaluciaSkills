@@ -10,6 +10,6 @@ public class UsuarioDTO {
     private String username;
     private String password;
     private String dni;
-    private String role; // Puede ser ADMIN o EXPERTO
-    private Long idEspecialidad; // Para relacionar con la especialidad
+    private String role;
+    private Long idEspecialidad;
 }

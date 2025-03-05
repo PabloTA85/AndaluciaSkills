@@ -4,13 +4,18 @@ import com.example.andaluciaskills.converter.EspecialidadConverter;
 import com.example.andaluciaskills.dto.EspecialidadDTO;
 import com.example.andaluciaskills.model.Especialidad;
 import com.example.andaluciaskills.service.EspecialidadService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/especialidad")
@@ -21,6 +26,7 @@ public class EspecialidadController {
 
     // Obtener todas las especialidades
     @GetMapping("/all")
+    @Operation(summary = "Obtener todas las especialidades", description = "Devuelve una lista de todas las especialidades")
     public List<EspecialidadDTO> getAllEspecialidades() {
         List<Especialidad> especialidades = especialidadService.findAll();
         return especialidades.stream()
@@ -30,35 +36,53 @@ public class EspecialidadController {
 
     // Obtener especialidad por ID
     @GetMapping("/{id}")
-    public ResponseEntity<EspecialidadDTO> getEspecialidadById(@PathVariable Long id) {
+    @Operation(summary = "Obtener especialidad por ID", description = "Devuelve los detalles de una especialidad dada su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Especialidad encontrada"),
+            @ApiResponse(responseCode = "404", description = "Especialidad no encontrada")
+    })
+    public ResponseEntity<EspecialidadDTO> getEspecialidadById(
+            @Parameter(description = "ID de la especialidad", required = true) @PathVariable Long id) {
         Optional<Especialidad> especialidad = especialidadService.findById(id);
         return especialidad.map(e -> ResponseEntity.ok(EspecialidadConverter.toDTO(e)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Crear una nueva especialidad
     @PostMapping("/create")
-    public ResponseEntity<Map<String, String>> createEspecialidad(@RequestBody EspecialidadDTO especialidadDTO) {
+    @Operation(summary = "Crear una nueva especialidad", description = "Permite crear una nueva especialidad")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Especialidad creada con éxito"),
+            @ApiResponse(responseCode = "400", description = "Error: código o nombre de especialidad duplicado")
+    })
+    public ResponseEntity<Map<String, String>> createEspecialidad(
+            @Parameter(description = "Datos de la especialidad a crear", required = true) @RequestBody EspecialidadDTO especialidadDTO) {
         Especialidad especialidad = EspecialidadConverter.toEntity(especialidadDTO);
 
         if (especialidadService.findByCodigo(especialidad.getCodigo()).isPresent()) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message",
-                            "Error: Ya existe una especialidad con el código " + especialidad.getCodigo()));
+                    .body(Map.of("message", "Error: Ya existe una especialidad con el código " + especialidad.getCodigo()));
         }
         if (especialidadService.findByNombre(especialidad.getNombre()).isPresent()) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message",
-                            "Error: Ya existe una especialidad con el nombre " + especialidad.getNombre()));
+                    .body(Map.of("message", "Error: Ya existe una especialidad con el nombre " + especialidad.getNombre()));
         }
 
         especialidadService.save(especialidad);
         return ResponseEntity.ok(Map.of("message", "Especialidad creada con éxito"));
     }
 
-    // Actualizar especialidad
+    // Actualizar una especialidad
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateEspecialidad(@PathVariable Long id,
-            @RequestBody EspecialidadDTO especialidadDTO) {
+    @Operation(summary = "Actualizar especialidad", description = "Permite actualizar los datos de una especialidad existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Especialidad actualizada con éxito"),
+            @ApiResponse(responseCode = "400", description = "Error: código o nombre de especialidad duplicado"),
+            @ApiResponse(responseCode = "404", description = "Especialidad no encontrada")
+    })
+    public ResponseEntity<String> updateEspecialidad(
+            @Parameter(description = "ID de la especialidad", required = true) @PathVariable Long id,
+            @Parameter(description = "Datos de la especialidad a actualizar", required = true) @RequestBody EspecialidadDTO especialidadDTO) {
 
         Optional<Especialidad> existingEspecialidadOpt = especialidadService.findById(id);
         if (!existingEspecialidadOpt.isPresent()) {
@@ -81,8 +105,15 @@ public class EspecialidadController {
         return ResponseEntity.ok("Especialidad actualizada con éxito");
     }
 
+    // Eliminar una especialidad
     @DeleteMapping("/{codigo}")
-    public ResponseEntity<String> deleteEspecialidad(@PathVariable String codigo) {
+    @Operation(summary = "Eliminar especialidad", description = "Permite eliminar una especialidad mediante su código")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Especialidad eliminada con éxito"),
+            @ApiResponse(responseCode = "404", description = "Especialidad no encontrada")
+    })
+    public ResponseEntity<String> deleteEspecialidad(
+            @Parameter(description = "Código de la especialidad", required = true) @PathVariable String codigo) {
         // Buscar la especialidad por su código
         Optional<Especialidad> especialidad = especialidadService.findByCodigo(codigo);
 
@@ -99,5 +130,4 @@ public class EspecialidadController {
                     .body("Error al eliminar la especialidad: " + e.getMessage());
         }
     }
-
 }

@@ -20,6 +20,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
 @RequestMapping("/api/participante")
@@ -33,6 +37,11 @@ public class ParticipanteController {
     private EspecialidadService especialidadService;
 
     // Obtener todos los participantes como DTOs
+    @Operation(summary = "Obtener todos los participantes", description = "Este endpoint devuelve todos los participantes como DTOs.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participantes obtenidos correctamente"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud")
+    })
     @GetMapping("/all")
     public ResponseEntity<List<ParticipanteDTO>> getAllParticipantes() {
         List<Participante> participantes = participanteService.findAll();
@@ -50,8 +59,14 @@ public class ParticipanteController {
     }
 
     // Obtener un participante por ID como DTO
+    @Operation(summary = "Obtener participante por ID", description = "Este endpoint devuelve un participante específico según su ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participante encontrado"),
+            @ApiResponse(responseCode = "404", description = "Participante no encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<ParticipanteDTO> getParticipanteById(@PathVariable Long id) {
+    public ResponseEntity<ParticipanteDTO> getParticipanteById(
+            @Parameter(description = "ID del participante a obtener") @PathVariable Long id) {
         Participante participante = participanteService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Participante no encontrado"));
         ParticipanteDTO participanteDTO = ParticipanteConverter.toDTO(participante);
@@ -59,6 +74,11 @@ public class ParticipanteController {
     }
 
     // Crear un participante a partir de un DTO
+    @Operation(summary = "Crear un nuevo participante", description = "Este endpoint crea un nuevo participante a partir de los datos proporcionados en un DTO.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participante creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud")
+    })
     @PostMapping("/create")
     public ResponseEntity<String> createParticipante(@RequestBody ParticipanteDTO participanteDTO) {
         Especialidad especialidad = especialidadService
@@ -71,6 +91,12 @@ public class ParticipanteController {
         return ResponseEntity.ok("Participante creado exitosamente");
     }
 
+    @Operation(summary = "Crear un participante por especialidad", description = "Este endpoint crea un participante asociado a la especialidad de un usuario, identificado por su ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participante creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado o error en la especialidad")
+    })
     @PostMapping("/create/byEspecialidad/{idUser}")
     public ResponseEntity<Map<String, Object>> createParticipanteByEspecialidad(
             @RequestBody ParticipanteDTO participanteDTO,
@@ -124,6 +150,12 @@ public class ParticipanteController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary =  "Actualizar un participante por ID", description = "Permite actualizar la información de un participante incluyendo su especialidad.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Participante actualizado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Participante no encontrado o especialidad no válida"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updateParticipante(@PathVariable Long id,
             @RequestBody ParticipanteDTO participanteDTO) {
@@ -166,7 +198,11 @@ public class ParticipanteController {
         }
     }
 
-    // Eliminar un participante
+    @Operation(summary = "Eliminar un participante por ID", description = "Permite eliminar un participante utilizando su ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode =  "204", description = "Participante eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Participante no encontrado")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteParticipante(@PathVariable Long id) {
         if (!participanteService.findById(id).isPresent()) {
@@ -176,7 +212,13 @@ public class ParticipanteController {
         return ResponseEntity.noContent().build();
     }
 
-    // Obtener los participantes con la misma especialidad que el experto logeado
+    @Operation(summary = "Obtener los participantes por especialidad del usuario logueado", description = "Obtiene los participantes que tienen la misma especialidad que el experto logueado.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de participantes obtenida exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud, el usuario no tiene especialidad"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "204", description = "No hay participantes para esta especialidad")
+    })
     @GetMapping("/porEspecialidad/{username}")
     public ResponseEntity<List<Participante>> getParticipantesByEspecialidad(@PathVariable String username) {
         Usuario usuario = usuarioService.findByUsername(username)

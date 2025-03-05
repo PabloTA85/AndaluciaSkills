@@ -18,7 +18,7 @@ public class PruebaConverter {
         pruebaDTO.setPdfData(prueba.getPdfData());
 
         if (prueba.getEspecialidad() != null) {
-            pruebaDTO.setNombreEspecialidad(prueba.getEspecialidad().getNombre());
+            pruebaDTO.setNombreEspecialidad(prueba.getEspecialidad().getCodigo());
         }
 
         return pruebaDTO;

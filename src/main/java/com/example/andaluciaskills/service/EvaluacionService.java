@@ -31,5 +31,7 @@ public class EvaluacionService {
         evaluacionRepository.deleteById(id);
     }
 
-
+    public List<Evaluacion> getEvaluacionesPorUsuario(Long userId) {
+        return evaluacionRepository.findByEvaluador_IdUser(userId); // Cambiado aquí también
+    }
 }
