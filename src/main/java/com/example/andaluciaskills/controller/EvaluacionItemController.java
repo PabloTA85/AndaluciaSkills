@@ -1,0 +1,29 @@
+package com.example.andaluciaskills.controller;
+
+import com.example.andaluciaskills.dto.EvaluacionItemDTO;
+import com.example.andaluciaskills.dto.EvaluacionResponse;
+import com.example.andaluciaskills.service.EvaluacionItemService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+
+@RestController
+@RequestMapping("/api/evaluacion-items")
+public class EvaluacionItemController {
+
+    @Autowired
+    private EvaluacionItemService evaluacionItemService;
+
+    @PostMapping("/crear")
+    public ResponseEntity<EvaluacionResponse> create(@RequestBody EvaluacionItemDTO evaluacionItemDTO) {
+        try {
+            var response = evaluacionItemService.evaluar(evaluacionItemDTO);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+}
